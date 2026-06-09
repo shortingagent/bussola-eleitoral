@@ -1,0 +1,4 @@
+.env
+node_modules/
+*.zip
+bussola_eleitoral_2026.html

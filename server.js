@@ -3,7 +3,7 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
-const PORT = 8080;
+const PORT = process.env.PORT || 8080;
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || '';
 
 const MIME = {
@@ -14,7 +14,6 @@ const MIME = {
 };
 
 const server = http.createServer((req, res) => {
-  // CORS headers for all responses
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -69,6 +68,6 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Bussola server running at http://localhost:${PORT}`);
-  if (!ANTHROPIC_KEY) console.warn('WARNING: ANTHROPIC_API_KEY not set — deep analysis will fail');
+  console.log(`Bussola server running on port ${PORT}`);
+  if (!ANTHROPIC_KEY) console.warn('WARNING: ANTHROPIC_API_KEY not set');
 });

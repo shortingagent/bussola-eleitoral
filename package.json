@@ -1,0 +1,12 @@
+{
+  "name": "bussola-eleitoral",
+  "version": "1.0.0",
+  "description": "Bússola Eleitoral Brasil 2026",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}
