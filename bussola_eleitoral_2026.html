@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bússola Eleitoral Brasil 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green: #009B3A;
+  --yellow: #FEDF00;
+  --blue: #002776;
+  --green-light: #e8f7ee;
+  --text: #1a1a1a;
+  --muted: #666;
+  --border: #e0e0e0;
+  --bg: #fafaf8;
+  --card: #ffffff;
+  --radius: 12px;
+  --arg-bg: #f4f4f2;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+.flag-stripe { height: 6px; background: linear-gradient(90deg, var(--green) 33.3%, var(--yellow) 33.3% 66.6%, var(--blue) 66.6%); }
+header { padding: 2rem 2rem 1.5rem; max-width: 760px; margin: 0 auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; }
+.logo { font-family: 'Fraunces', serif; font-size: 1.75rem; font-weight: 600; color: var(--text); line-height: 1.1; }
+.logo span { color: var(--green); }
+.logo-sub { font-size: 0.78rem; color: var(--muted); font-weight: 300; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 4px; }
+.badge { background: var(--blue); color: #fff; font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500; white-space: nowrap; }
+main { max-width: 760px; margin: 0 auto; padding: 0 2rem 4rem; }
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* INTRO */
+.intro-hero { border-radius: var(--radius); background: var(--blue); color: #fff; padding: 2.5rem; margin-bottom: 1.5rem; position: relative; overflow: hidden; }
+.intro-hero::before { content: '🇧🇷'; position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); font-size: 5rem; opacity: 0.12; }
+.intro-hero h2 { font-family: 'Fraunces', serif; font-size: 1.6rem; font-weight: 300; line-height: 1.3; margin-bottom: 0.75rem; }
+.intro-hero h2 em { font-style: italic; color: var(--yellow); }
+.intro-hero p { font-size: 0.9rem; opacity: 0.8; line-height: 1.6; max-width: 440px; }
+.topic-select-label { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.75rem; }
+.topic-select-label strong { color: var(--text); }
+.topics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 1rem 0 1.75rem; }
+.topic-chip { border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 0.82rem; color: var(--muted); background: var(--card); display: flex; align-items: center; gap: 7px; cursor: pointer; transition: all 0.15s; user-select: none; }
+.topic-chip:hover { border-color: #aaa; color: var(--text); }
+.topic-chip.selected { border-color: var(--green); border-width: 2px; background: var(--green-light); color: #005c22; font-weight: 500; }
+.topic-chip .icon { font-size: 1.1rem; flex-shrink: 0; }
+.topic-chip .check { margin-left: auto; color: var(--green); font-size: 1rem; display: none; }
+.topic-chip.selected .check { display: block; }
+.start-btn { background: var(--green); color: #fff; border: none; border-radius: 10px; padding: 14px 36px; font-size: 1rem; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.15s, transform 0.1s; letter-spacing: 0.02em; }
+.start-btn:hover:not(:disabled) { background: #007a2f; transform: translateY(-1px); }
+.start-btn:disabled { background: #ccc; cursor: default; }
+
+/* QUIZ */
+.quiz-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+.q-count { font-size: 0.8rem; color: var(--muted); font-weight: 500; }
+.topic-tag { font-size: 0.75rem; background: var(--green-light); color: var(--green); padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+.progress-track { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 2rem; }
+.progress-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.4s ease; }
+.q-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; margin-bottom: 1rem; }
+.q-number { font-size: 0.75rem; color: var(--green); font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.5rem; }
+.q-card h3 { font-family: 'Fraunces', serif; font-size: 1.3rem; font-weight: 600; line-height: 1.35; margin-bottom: 0.85rem; }
+.q-context { font-size: 0.88rem; color: #444; line-height: 1.65; margin-bottom: 1.25rem; }
+.args-toggle { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 500; color: var(--text); background: none; border: none; cursor: pointer; padding: 0; font-family: 'DM Sans', sans-serif; }
+.args-toggle .chevron { transition: transform 0.2s; display: inline-block; font-size: 0.7rem; }
+.args-toggle.open .chevron { transform: rotate(180deg); }
+.args-box { background: var(--arg-bg); border-radius: 10px; padding: 1.25rem; margin-top: 0.85rem; display: none; }
+.args-box.open { display: block; }
+.arg-section { margin-bottom: 1rem; }
+.arg-section:last-child { margin-bottom: 0; }
+.arg-label { font-size: 0.82rem; font-weight: 500; color: var(--text); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 5px; }
+.arg-label .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dot-for { background: var(--green); }
+.dot-against { background: #c0392b; }
+.arg-text { font-size: 0.85rem; color: #444; line-height: 1.6; }
+.options { display: flex; flex-direction: column; gap: 7px; margin-bottom: 1.5rem; margin-top: 1.25rem; }
+.opt { border: 1px solid var(--border); border-radius: 10px; padding: 13px 16px; background: var(--card); cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; text-align: left; color: var(--text); display: flex; align-items: center; gap: 11px; transition: all 0.15s; }
+.opt:hover { border-color: #aaa; background: #f5f5f3; }
+.opt.selected { border-color: var(--green); border-width: 1.5px; background: var(--green-light); color: #005c22; }
+.opt-dot { width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid var(--border); flex-shrink: 0; transition: all 0.15s; }
+.opt.selected .opt-dot { background: var(--green); border-color: var(--green); }
+.quiz-nav { display: flex; align-items: center; gap: 12px; }
+.btn-next { background: var(--green); color: #fff; border: none; border-radius: 10px; padding: 12px 28px; font-size: 0.9rem; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+.btn-next:disabled { background: #ccc; cursor: default; }
+.btn-next:not(:disabled):hover { background: #007a2f; }
+.btn-skip { background: none; border: none; color: var(--muted); font-size: 0.85rem; cursor: pointer; font-family: 'DM Sans', sans-serif; padding: 8px; }
+.btn-skip:hover { color: var(--text); }
+
+/* RESULTS */
+.section-title { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 1rem; font-weight: 500; }
+.top3-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 2rem; }
+.top3-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
+.top3-card.rank1 { border-color: var(--green); border-width: 1.5px; }
+.top3-rank { font-size: 0.7rem; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.5rem; }
+.top3-name { font-family: 'Fraunces', serif; font-size: 1.4rem; font-weight: 600; color: var(--text); margin-bottom: 0.15rem; }
+.top3-full { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.6rem; line-height: 1.3; }
+.top3-pct { font-size: 1rem; font-weight: 500; color: var(--green); margin-bottom: 0.75rem; }
+.top3-why { font-size: 0.78rem; color: #555; line-height: 1.55; margin-bottom: 1rem; }
+.top3-link { display: inline-flex; align-items: center; gap: 4px; font-size: 0.78rem; color: var(--blue); text-decoration: none; border-bottom: 1px solid var(--border); padding-bottom: 1px; }
+.top3-link:hover { border-color: var(--blue); }
+.party-bars { margin-bottom: 2rem; }
+.party-row { margin-bottom: 1rem; }
+.party-label { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+.pname { font-weight: 500; font-size: 0.88rem; }
+.pfull { font-size: 0.75rem; color: var(--muted); font-weight: 300; margin-left: 5px; }
+.ppct { font-size: 0.85rem; color: var(--muted); font-weight: 500; }
+.bar-track { height: 10px; background: var(--border); border-radius: 5px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 5px; transition: width 1.2s cubic-bezier(.16,.7,.32,1); }
+.breakdown-section { margin-top: 2rem; }
+.party-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.25rem; }
+.ptab { padding: 6px 14px; border: 1px solid var(--border); border-radius: 20px; font-size: 0.8rem; cursor: pointer; background: var(--card); color: var(--muted); font-family: 'DM Sans', sans-serif; font-weight: 500; transition: all 0.15s; }
+.ptab:hover { border-color: #aaa; color: var(--text); }
+.ptab.active { background: var(--text); border-color: var(--text); color: #fff; }
+.topic-panel { display: none; }
+.topic-panel.active { display: block; }
+.topic-row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+.topic-row:last-child { border-bottom: none; }
+.topic-name { flex: 1; color: var(--muted); }
+.topic-pct { font-weight: 500; min-width: 42px; text-align: right; }
+.agree { color: var(--green); }
+.mid { color: #888; }
+.disagree { color: #c0392b; }
+
+/* BOTTOM ACTIONS */
+.restart-row { margin-top: 2.5rem; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.restart-btn { background: none; border: 1px solid var(--border); border-radius: 10px; padding: 10px 20px; font-size: 0.85rem; color: var(--muted); cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.restart-btn:hover { color: var(--text); border-color: #aaa; }
+
+/* DEEP ANALYSIS BUTTON */
+.deep-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--blue); color: #fff; border: none; border-radius: 10px;
+  padding: 11px 22px; font-size: 0.9rem; font-family: 'DM Sans', sans-serif;
+  font-weight: 500; cursor: pointer; transition: background 0.15s, transform 0.1s;
+  letter-spacing: 0.01em;
+}
+.deep-btn:hover:not(:disabled) { background: #001a55; transform: translateY(-1px); }
+.deep-btn:disabled { background: #888; cursor: default; transform: none; }
+.deep-btn .spinner {
+  width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff; border-radius: 50%;
+  animation: spin 0.7s linear infinite; display: none; flex-shrink: 0;
+}
+.deep-btn.loading .spinner { display: block; }
+.deep-btn.loading .btn-label { opacity: 0.75; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* MODAL */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  padding: 1.5rem 1rem; z-index: 1000;
+  opacity: 0; pointer-events: none; transition: opacity 0.25s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--card); border-radius: var(--radius);
+  max-width: 680px; width: 100%;
+  max-height: 88vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 24px 72px rgba(0,0,0,0.2);
+  transform: translateY(20px) scale(0.98); transition: transform 0.25s;
+}
+.modal-overlay.open .modal { transform: translateY(0) scale(1); }
+
+.modal-header {
+  padding: 1.75rem 2rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0; position: relative;
+}
+.modal-close {
+  position: absolute; top: 1.25rem; right: 1.25rem;
+  background: var(--arg-bg); border: none; font-size: 0.85rem; cursor: pointer;
+  color: var(--muted); padding: 6px 10px; border-radius: 8px;
+  transition: background 0.15s, color 0.15s; font-family: 'DM Sans', sans-serif;
+}
+.modal-close:hover { background: #e0e0e0; color: var(--text); }
+.modal-title {
+  font-family: 'Fraunces', serif; font-size: 1.25rem; font-weight: 600;
+  margin-bottom: 0.2rem; padding-right: 3rem; color: var(--text); line-height: 1.3;
+}
+.modal-subtitle { font-size: 0.78rem; color: var(--muted); }
+.modal-body { padding: 1.5rem 2rem 2rem; overflow-y: auto; flex: 1; }
+
+/* ANALYSIS CONTENT */
+.analysis-content { font-size: 0.9rem; line-height: 1.75; color: #333; }
+.analysis-content h3 {
+  font-family: 'Fraunces', serif; font-size: 1.05rem; font-weight: 600;
+  color: var(--text); margin: 1.5rem 0 0.5rem; padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+.analysis-content h3:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+.analysis-content p { margin-bottom: 0.8rem; }
+.analysis-content p:last-child { margin-bottom: 0; }
+.analysis-content strong { font-weight: 500; color: var(--text); }
+.analysis-content em { font-style: italic; color: #555; }
+.analysis-content ul { padding-left: 1.25rem; margin-bottom: 0.8rem; }
+.analysis-content li { margin-bottom: 0.35rem; }
+
+.analysis-loading {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 3rem 2rem; gap: 1rem; color: var(--muted); font-size: 0.85rem; text-align: center;
+}
+.analysis-loading .big-spinner {
+  width: 36px; height: 36px; border: 3px solid var(--border);
+  border-top-color: var(--blue); border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+.analysis-loading p { max-width: 260px; line-height: 1.5; }
+.analysis-error {
+  background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px;
+  padding: 1.25rem; font-size: 0.85rem; color: #991b1b; line-height: 1.6;
+}
+.cursor-blink::after {
+  content: '▋'; animation: blink 0.8s step-end infinite; color: var(--blue); font-size: 0.85em;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+footer { text-align: center; padding: 2rem; font-size: 0.75rem; color: var(--muted); border-top: 1px solid var(--border); margin-top: 4rem; }
+@media (max-width: 600px) {
+  header { padding: 1.25rem; }
+  main { padding: 0 1.25rem 3rem; }
+  .topics-grid { grid-template-columns: repeat(2, 1fr); }
+  .top3-grid { grid-template-columns: 1fr; }
+  .intro-hero { padding: 1.75rem; }
+  .q-card { padding: 1.5rem; }
+  .modal-header { padding: 1.25rem 1.25rem 1rem; }
+  .modal-body { padding: 1.25rem; }
+}
+</style>
+</head>
+<body>
+<div class="flag-stripe"></div>
+<header>
+  <div>
+    <div class="logo">Bússola <span>Eleitoral</span></div>
+    <div class="logo-sub">Brasil 2026</div>
+  </div>
+  <div class="badge">4 out · 2026</div>
+</header>
+<main>
+
+<!-- INTRO -->
+<div id="screen-intro" class="screen active">
+  <div class="intro-hero">
+    <h2>Qual partido combina<br>com <em>você</em>?</h2>
+    <p>Escolha ao menos três temas, responda as perguntas e descubra seu alinhamento com os principais partidos da eleição presidencial de outubro de 2026.</p>
+  </div>
+  <p class="topic-select-label">Selecione <strong>ao menos 3 temas</strong> que mais importam para você:</p>
+  <div class="topics-grid" id="topics-grid"></div>
+  <button class="start-btn" id="start-btn" onclick="startQuiz()" disabled>Começar →</button>
+</div>
+
+<!-- QUIZ -->
+<div id="screen-quiz" class="screen">
+  <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+  <div class="quiz-meta">
+    <span class="q-count" id="q-count"></span>
+    <span class="topic-tag" id="q-topic"></span>
+  </div>
+  <div class="q-card">
+    <div class="q-number" id="q-number"></div>
+    <h3 id="q-text"></h3>
+    <p class="q-context" id="q-context"></p>
+    <button class="args-toggle" id="args-toggle" onclick="toggleArgs()">
+      Argumentos a favor e contra <span class="chevron">▼</span>
+    </button>
+    <div class="args-box" id="args-box">
+      <div class="arg-section">
+        <div class="arg-label"><span class="dot dot-for"></span>Argumento a favor</div>
+        <p class="arg-text" id="arg-for"></p>
+      </div>
+      <div class="arg-section">
+        <div class="arg-label"><span class="dot dot-against"></span>Argumento contra</div>
+        <p class="arg-text" id="arg-against"></p>
+      </div>
+    </div>
+  </div>
+  <div class="options" id="options"></div>
+  <div class="quiz-nav">
+    <button class="btn-next" id="btn-next" disabled onclick="nextQ()">Próxima →</button>
+    <button class="btn-skip" onclick="skipQ()">Pular</button>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="screen-results" class="screen">
+  <p class="section-title">Seus três melhores resultados</p>
+  <div class="top3-grid" id="top3-grid"></div>
+  <p class="section-title">Todos os partidos</p>
+  <div class="party-bars" id="all-bars"></div>
+  <div class="breakdown-section">
+    <p class="section-title">Alinhamento por tema</p>
+    <div class="party-tabs" id="party-tabs"></div>
+    <div id="topic-panels"></div>
+  </div>
+  <div class="restart-row">
+    <button class="deep-btn" id="deep-btn" onclick="openDeepAnalysis()">
+      <span class="spinner"></span>
+      <span class="btn-label">🔍 Análise aprofundada</span>
+    </button>
+    <button class="restart-btn" onclick="restart()">↺ Recomeçar</button>
+  </div>
+</div>
+
+<!-- DEEP ANALYSIS MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <button class="modal-close" onclick="closeModal()">✕ Fechar</button>
+      <div class="modal-title">Análise aprofundada do seu perfil político</div>
+      <div class="modal-subtitle" id="modal-subtitle">Gerada com base nas suas respostas individuais</div>
+    </div>
+    <div class="modal-body" id="analysis-body"></div>
+  </div>
+</div>
+
+</main>
+<footer>Bússola Eleitoral Brasil 2026 · Ferramenta educacional não-partidária · Posições baseadas em programas e declarações públicas dos partidos</footer>
+
+<script>
+const TOPICS = [
+  { id:'economia',   label:'Economia',          icon:'💰' },
+  { id:'fiscal',     label:'Finanças Públicas',  icon:'📊' },
+  { id:'ambiente',   label:'Meio Ambiente',      icon:'🌳' },
+  { id:'seguranca',  label:'Segurança',          icon:'🔫' },
+  { id:'saude',      label:'Saúde',              icon:'🏥' },
+  { id:'educacao',   label:'Educação',           icon:'🏫' },
+  { id:'direitos',   label:'Direitos Sociais',   icon:'⚖️' },
+  { id:'politica',   label:'Política Externa',   icon:'🌍' },
+  { id:'democracia', label:'Democracia',         icon:'🏛️' },
+];
+
+const PARTIES = [
+  { name:'PT',   full:'Partido dos Trabalhadores',       color:'#C0392B', candidate:'Lula / Haddad',    url:'https://pt.org.br',    desc:'Centro-esquerda. Defende Estado ativo, SUS robusto, programas sociais e multilateralismo.' },
+  { name:'PL',   full:'Partido Liberal',                 color:'#002776', candidate:'Flávio Bolsonaro', url:'https://pl.org.br',    desc:'Direita. Defende liberalismo econômico, armamento civil e valores conservadores.' },
+  { name:'MDB',  full:'Movimento Democrático Brasileiro',color:'#E67E22', candidate:'Centro',            url:'https://mdb.org.br',   desc:'Centro. Pragmatismo político, moderação em economia e defesa das instituições.' },
+  { name:'NOVO', full:'Partido Novo',                    color:'#E74C3C', candidate:'Romeu Zema',        url:'https://novo.org.br',  desc:'Direita liberal. Privatizações, equilíbrio fiscal rigoroso e Estado mínimo.' },
+  { name:'PDT',  full:'Partido Democrático Trabalhista', color:'#16A085', candidate:'Centro-esquerda',   url:'https://pdt.org.br',   desc:'Centro-esquerda. Direitos dos trabalhadores, saúde pública e democracia.' },
+  { name:'PSD',  full:'Partido Social Democrático',      color:'#8E44AD', candidate:'Ronaldo Caiado',    url:'https://psd.org.br',   desc:'Centro-direita. Moderado em economia, conservador em costumes.' },
+];
+
+// positions: PT, PL, MDB, NOVO, PDT, PSD  (null = sem posição oficial)
+const QUESTIONS = [
+  // ECONOMIA
+  { topic:'economia', title:'O Estado deve controlar setores estratégicos da economia',
+    context:'O debate sobre o papel do Estado na economia é central na política brasileira. Enquanto uns defendem que empresas estatais garantem soberania em áreas como energia e telecomunicações, outros argumentam que a iniciativa privada é mais eficiente e inovadora.',
+    argFor:'A presença do Estado em setores estratégicos garante soberania nacional, preços controlados e acesso universal a serviços essenciais, evitando que lucros privados se sobreponham ao interesse público.',
+    argAgainst:'Empresas estatais são frequentemente ineficientes e sujeitas a interferências políticas. A privatização traz investimento, inovação e melhor qualidade de serviço ao consumidor.',
+    positions:[2,-2,0,-2,1,-1] },
+  { topic:'economia', title:'O salário mínimo deve ser reajustado acima da inflação todo ano',
+    context:'O governo Lula adotou política de reajuste real do salário mínimo, elevando o poder de compra da base da pirâmide. O debate é entre redução da desigualdade e pressão sobre despesas previdenciárias.',
+    argFor:'Reajustes reais reduzem a desigualdade, estimulam o consumo popular e têm efeito multiplicador especialmente no comércio local e nos pequenos municípios.',
+    argAgainst:'Aumentos acima da inflação elevam custos empresariais e da previdência social, pressionando o orçamento e podendo gerar informalidade ou redução de empregos.',
+    positions:[2,-1,1,-2,2,0] },
+  { topic:'economia', title:'O governo deve ampliar programas de transferência de renda como o Bolsa Família',
+    context:'O Bolsa Família é o maior programa de transferência de renda do mundo. Defende-se que ele retira famílias da pobreza; críticos argumentam que cria dependência e faltam condicionalidades mais rigorosas.',
+    argFor:'Transferências de renda são a forma mais direta de combater a pobreza extrema. Países com redes de proteção social robustas têm menores índices de violência e maior coesão social.',
+    argAgainst:'Sem contrapartidas efetivas de inserção no mercado de trabalho, o programa pode criar dependência crônica do Estado em vez de promover emancipação econômica real.',
+    positions:[2,-2,1,-2,2,0] },
+  { topic:'economia', title:'A Petrobras deve ser privatizada',
+    context:'A Petrobras é uma das maiores empresas do mundo. O debate sobre sua privatização envolve eficiência, soberania energética, preços de combustíveis e uso dos dividendos para políticas públicas.',
+    argFor:'A privatização tornaria a Petrobras mais eficiente, menos sujeita a interferência política nos preços e liberaria o Estado de assumir passivos da empresa.',
+    argAgainst:'A Petrobras é estratégica para a soberania energética e a arrecadação nacional. Privatizá-la entregaria um ativo bilionário ao capital privado, com risco de aumento de preços.',
+    positions:[-2,2,0,2,-2,-1] },
+
+  // FISCAL
+  { topic:'fiscal', title:'O governo deve cortar gastos públicos para reduzir o déficit fiscal',
+    context:'O Brasil convive com déficit primário recorrente e dívida pública crescente. O debate é se o ajuste deve vir pelo lado das despesas ou da receita, e quais programas podem ser cortados sem danos sociais.',
+    argFor:'Um fiscal equilibrado reduz a taxa de juros, atrai investimentos e estabiliza a moeda. Sem disciplina fiscal, o país paga mais juros e tem menos para investir em serviços públicos.',
+    argAgainst:'Cortes em gastos sociais afetam os mais vulneráveis e reduzem a demanda interna. Em períodos de baixo crescimento, o ajuste fiscal pode aprofundar a recessão.',
+    positions:[-1,2,1,2,-1,1] },
+  { topic:'fiscal', title:'Ricos e grandes empresas devem pagar mais impostos',
+    context:'O sistema tributário brasileiro é regressivo: as camadas mais pobres pagam proporcionalmente mais impostos. A proposta de tributar dividendos e grandes heranças voltou ao debate em 2023-2024.',
+    argFor:'A concentração de renda no Brasil é entre as maiores do mundo. Tributar dividendos e grandes fortunas, como ocorre em países desenvolvidos, é uma medida de justiça fiscal.',
+    argAgainst:'Impostos elevados sobre capital afugentam investimentos e reduzem a competitividade. O problema fiscal brasileiro está no excesso de gastos, não na falta de arrecadação.',
+    positions:[2,-2,0,-2,2,-1] },
+  { topic:'fiscal', title:'A isenção de imposto de renda para salários até R$ 5.000 deve ser aprovada',
+    context:'O presidente Lula prometeu isentar de IR quem ganha até R$ 5.000 por mês. O projeto compensaria a perda de arrecadação com um imposto mínimo sobre rendas acima de R$ 50.000. O debate envolve custo fiscal e progressividade.',
+    argFor:'A isenção aumenta o poder de compra da classe média-baixa, estimula o consumo e representa justiça fiscal: quem ganha menos deve contribuir menos proporcionalmente.',
+    argAgainst:'A medida tem custo fiscal elevado e pode ser compensada de forma inadequada, prejudicando o equilíbrio das contas públicas e criando novas distorções tributárias.',
+    positions:[2,-1,1,-2,2,0] },
+  { topic:'fiscal', title:'Os mínimos constitucionais de investimento em saúde e educação devem ser mantidos',
+    context:'A Constituição exige percentuais mínimos do orçamento para saúde (15%) e educação (18%). O PL de Flávio Bolsonaro sinalizou rever esses pisos para dar mais flexibilidade fiscal ao governo.',
+    argFor:'Os pisos constitucionais são garantia de que saúde e educação não serão sacrificados em momentos de ajuste fiscal. Sem eles, esses setores serão os primeiros a sofrer cortes.',
+    argAgainst:'Vincular percentuais fixos do orçamento engesssa o planejamento fiscal. O governo deve ter flexibilidade para alocar recursos onde a necessidade for maior em cada momento.',
+    positions:[2,-2,1,-1,2,0] },
+
+  // MEIO AMBIENTE
+  { topic:'ambiente', title:'O Brasil deve endurecer as leis de proteção à Amazônia',
+    context:'O desmatamento da Amazônia é tema central nas negociações climáticas. O Brasil sediará a COP30 em 2025. O agronegócio responde por ~30% do PIB e defende o uso regulado da terra.',
+    argFor:'A Amazônia é patrimônio da humanidade e reguladora do clima global. Sem ela, o próprio agronegócio sofre com mudanças no regime de chuvas e temperatura.',
+    argAgainst:'Restringir a expansão agrícola prejudica produtores rurais, especialmente pequenos agricultores. O Brasil já preserva mais do que a maioria dos países ricos.',
+    positions:[2,-2,1,-1,2,0] },
+  { topic:'ambiente', title:'O Brasil deve acelerar a transição para energias renováveis',
+    context:'O Brasil já tem matriz elétrica predominantemente renovável. A questão é se deve acelerar a descarbonização na indústria e transportes, setores que ainda dependem de combustíveis fósseis.',
+    argFor:'A transição energética cria empregos verdes, reduz dependência de fósseis e posiciona o Brasil como líder global em energia limpa, atraindo investimentos.',
+    argAgainst:'A transição acelerada eleva custos de energia para a indústria e famílias no curto prazo, podendo comprometer a competitividade e o crescimento econômico.',
+    positions:[2,-1,1,-1,2,0] },
+  { topic:'ambiente', title:'A exploração de petróleo na Margem Equatorial deve ser autorizada',
+    context:'A Petrobras identificou grandes reservas de petróleo na costa norte do Brasil. O IBAMA negou a licença por riscos ambientais. O debate é entre receita para o país e preservação de ecossistemas marinhos.',
+    argFor:'As reservas podem gerar bilhões para financiar transição energética, saúde e educação. Abandoná-las seria abrir mão de recursos estratégicos nacionais.',
+    argAgainst:'A exploração em área ambientalmente sensível representa risco grave de desastre ecológico irreversível. O Brasil deve investir em seu potencial renovável.',
+    positions:[0,2,1,2,-1,1] },
+  { topic:'ambiente', title:'O uso de agrotóxicos no Brasil deve ser mais restrito',
+    context:'O Brasil é o maior consumidor de agrotóxicos do mundo. O governo Bolsonaro aprovou centenas de novos pesticidas. O debate envolve produtividade agrícola, saúde dos trabalhadores rurais e contaminação de alimentos.',
+    argFor:'Agrotóxicos contaminam água, solo e alimentos, causando doenças na população e nos trabalhadores rurais. Países desenvolvidos já baniram muitas substâncias ainda usadas no Brasil.',
+    argAgainst:'A agricultura moderna depende de defensivos agrícolas para controlar pragas e garantir produtividade. Restrições excessivas reduzem competitividade e encarecem os alimentos.',
+    positions:[2,-2,0,-1,2,-1] },
+
+  // SEGURANÇA
+  { topic:'seguranca', title:'Leis mais rígidas para porte de armas de fogo reduziriam a violência',
+    context:'O governo Lula reverteu os decretos de flexibilização do armamento do governo anterior. O Brasil tem mais de 40 mil mortes por armas de fogo por ano.',
+    argFor:'A proliferação de armas alimenta o ciclo de violência. Países com controle rígido têm consistentemente menos mortes violentas per capita.',
+    argAgainst:'O criminoso não compra armas legalmente. Restringir o armamento só afeta cidadãos de bem, deixando-os indefesos frente ao crime organizado.',
+    positions:[2,-2,1,-2,2,-1] },
+  { topic:'seguranca', title:'O Estado deve adotar política de confronto direto contra o crime organizado',
+    context:'Facções criminosas dominam territórios em diversas capitais. O debate é entre abordagens repressivas, como as adotadas por El Salvador, e políticas de prevenção social.',
+    argFor:'O Estado não pode negociar com criminosos. O confronto direto é necessário para recuperar territórios dominados pelo crime e restaurar a autoridade do Estado.',
+    argAgainst:'Políticas de confronto causam mortes de inocentes, aprofundam o trauma em comunidades vulneráveis e não resolvem as causas estruturais da criminalidade.',
+    positions:[-1,2,0,1,-1,1] },
+  { topic:'seguranca', title:'O porte de armas de fogo para cidadãos comuns deve ser liberalizado',
+    context:'O governo Bolsonaro expandiu significativamente o acesso a armas. O governo Lula reverteu essas medidas. O debate envolve liberdade individual, autodefesa e impacto na violência urbana.',
+    argFor:'O cidadão tem direito de se defender. Em regiões com alta criminalidade e policiamento insuficiente, o armamento da população pode ser dissuasório para criminosos.',
+    argAgainst:'Mais armas em circulação aumentam o risco de acidentes, feminicídios e escalada de conflitos. A solução para a violência está em policiamento eficiente e políticas sociais.',
+    positions:[-2,2,-1,1,-2,-1] },
+  { topic:'seguranca', title:'As Forças Armadas devem ter papel permanente na segurança pública',
+    context:'As Forças Armadas são frequentemente usadas em operações de segurança em favelas e eventos públicos. O debate é se isso é adequado ou se distorce a missão constitucional das Forças Armadas.',
+    argFor:'Em regiões onde a polícia não consegue atuar com eficácia, o Exército pode oferecer capacidade operacional superior. A segurança nacional inclui a segurança interna.',
+    argAgainst:'Usar as Forças Armadas em segurança pública as desvirtua de sua missão constitucional de defesa externa, aumenta o risco de violações de direitos e cria precedentes perigosos.',
+    positions:[-1,2,0,0,-2,0] },
+
+  // SAÚDE
+  { topic:'saude', title:'O SUS deve ser fortalecido com mais financiamento público',
+    context:'O SUS atende 75% dos brasileiros e está subfinanciado em relação a países com sistemas universais comparáveis. O debate é sobre aumentar o piso de gastos ou ampliar espaço para planos privados.',
+    argFor:'O SUS é uma conquista constitucional que salva milhões de vidas. Mais recursos são essenciais para reduzir filas e melhorar a qualidade do atendimento.',
+    argAgainst:'O problema do SUS não é só financeiro, mas de gestão. Mais dinheiro sem reforma institucional não resolverá o sistema; é preciso combater desperdício e ineficiência.',
+    positions:[2,-1,1,-1,2,0] },
+  { topic:'saude', title:'Planos de saúde privados devem ter preços mais controlados pelo governo',
+    context:'Os planos de saúde reajustaram preços bem acima da inflação nos últimos anos. A ANS regula o setor, mas consumidores reclamam de coberturas negadas e custos crescentes.',
+    argFor:'Planos de saúde são serviços essenciais. Sem regulação efetiva, as operadoras maximizam lucros às custas da saúde dos beneficiários.',
+    argAgainst:'Controle excessivo de preços desincentiva investimentos, reduz a qualidade e pode levar à falência de operadoras, sobrecarregando o SUS.',
+    positions:[2,-1,1,-1,1,0] },
+  { topic:'saude', title:'O Brasil deve legalizar e regulamentar a cannabis medicinal e recreativa',
+    context:'O uso medicinal da cannabis já é parcialmente autorizado. O debate sobre legalização recreativa ganhou força com decisões do STF e avanços internacionais.',
+    argFor:'A proibição não elimina o consumo, mas alimenta o tráfico e criminaliza usuários. A regulamentação permite controle de qualidade e reduz a violência associada ao tráfico.',
+    argAgainst:'Legalizar aumenta o acesso e o consumo, especialmente entre jovens, com riscos comprovados para a saúde mental. O Estado não deve facilitar o acesso a psicoativos.',
+    positions:[1,-2,0,-1,1,-1] },
+
+  // EDUCAÇÃO
+  { topic:'educacao', title:'Universidades públicas devem cobrar mensalidade de alunos de alta renda',
+    context:'As universidades federais são gratuitas para todos. O debate é se a gratuidade universal nas públicas é justa dado que o perfil socioeconômico dos alunos tende a ser mais privilegiado.',
+    argFor:'A gratuidade universal beneficia desproporcionalmente quem veio de boas escolas privadas. Cobrar de quem pode pagar libera recursos para ampliar vagas e qualidade.',
+    argAgainst:'A gratuidade universal é um princípio constitucional importante. Mensalidades criam barreiras ao acesso, mesmo com bolsas; melhor ampliar cotas e assistência estudantil.',
+    positions:[0,1,1,2,-1,1] },
+  { topic:'educacao', title:'O homeschooling deve ser regulamentado e permitido no Brasil',
+    context:'O ensino domiciliar é praticado por algumas famílias brasileiras, mas não tem regulamentação legal. O STF decidiu que não é crime, mas o Congresso ainda debate a regulamentação.',
+    argFor:'Famílias devem ter o direito de escolher como educar seus filhos. O homeschooling pode ser mais eficiente e adaptado às necessidades individuais de cada criança.',
+    argAgainst:'A escola pública é espaço de socialização, diversidade e cidadania. O homeschooling pode isolar crianças, reforçar visões de mundo restritas e dificultar a fiscalização de abusos.',
+    positions:[-1,2,0,1,-1,0] },
+  { topic:'educacao', title:'O governo deve ampliar o ensino técnico e profissionalizante',
+    context:'O Brasil tem deficit de mão de obra técnica qualificada. Programas como o Senai e o Pronatec formam trabalhadores, mas a demanda supera a oferta de vagas.',
+    argFor:'O ensino técnico conecta jovens ao mercado de trabalho com mais rapidez. Países com forte sistema profissionalizante, como a Alemanha, têm baixo desemprego juvenil.',
+    argAgainst:'Sem qualificação superior, trabalhadores ficam presos em empregos de menor remuneração. O Estado deve priorizar educação de qualidade desde a infância.',
+    positions:[1,2,2,2,1,2] },
+  { topic:'educacao', title:'O currículo escolar deve incluir educação sexual nas escolas públicas',
+    context:'A educação sexual nas escolas é alvo de debate acirrado. Defensores argumentam que previne gravidez na adolescência e DSTs; críticos dizem que é papel da família e contraria valores religiosos.',
+    argFor:'A educação sexual baseada em ciência previne gravidez indesejada, DSTs e abuso sexual. Crianças bem informadas tomam decisões mais saudáveis e seguras.',
+    argAgainst:'Educação sexual é papel da família, não do Estado. O conteúdo pode não refletir os valores morais e religiosos das famílias e não deve ser imposto pelo currículo público.',
+    positions:[2,-2,0,-1,2,-1] },
+
+  // DIREITOS SOCIAIS
+  { topic:'direitos', title:'O Brasil deve ampliar direitos trabalhistas e restringir demissões sem justa causa',
+    context:'A reforma trabalhista de 2017 flexibilizou contratos. O governo Lula sinalizou revisar partes dela. O debate é entre proteção ao trabalhador e flexibilidade para as empresas.',
+    argFor:'A flexibilização precarizou o emprego e transferiu riscos da produção para o trabalhador. Direitos trabalhistas são conquistas que precisam ser protegidas para garantir dignidade.',
+    argAgainst:'Leis rígidas encarecem a contratação e incentivam a informalidade. Mais flexibilidade, com boa segurança social, permite que empresas contratem mais.',
+    positions:[2,-2,0,-2,2,-1] },
+  { topic:'direitos', title:'A jornada de trabalho deve ser reduzida de 44h para 40h semanais (fim do 6x1)',
+    context:'A PEC do fim da escala 6×1 ganhou força no Congresso em 2024-2025. O debate é entre melhoria da qualidade de vida dos trabalhadores e impacto nos custos para as empresas.',
+    argFor:'A redução da jornada melhora a saúde e a qualidade de vida dos trabalhadores, aumenta a produtividade e pode criar novos empregos ao distribuir o trabalho entre mais pessoas.',
+    argAgainst:'Reduzir a jornada sem reduzir salários aumenta o custo do trabalho, afetando especialmente pequenas empresas e podendo gerar mais informalidade ou desemprego.',
+    positions:[2,-2,0,-2,2,-1] },
+  { topic:'direitos', title:'O governo deve implementar cotas raciais e sociais em universidades e serviço público',
+    context:'Cotas raciais e sociais são alvo de debate permanente. O STF reafirmou sua constitucionalidade, mas críticos defendem critérios exclusivamente socioeconômicos.',
+    argFor:'Séculos de escravidão e exclusão criaram desigualdades estruturais que o mérito individual sozinho não supera. Cotas são uma correção necessária e temporária.',
+    argAgainst:'Políticas baseadas em raça dividem a sociedade. Ações afirmativas devem ser baseadas em renda, beneficiando todos os pobres independentemente da etnia.',
+    positions:[2,-2,0,-1,2,-1] },
+  { topic:'direitos', title:'A legislação brasileira deve ampliar os direitos de casais do mesmo sexo',
+    context:'O casamento homoafetivo foi reconhecido pelo STF em 2011. O debate atual envolve adoção, reprodução assistida e proteção contra discriminação no trabalho e habitação.',
+    argFor:'Famílias homoafetivas existem e seus membros são cidadãos plenos. Negar direitos iguais é discriminação que o Estado democrático não pode sustentar.',
+    argAgainst:'A definição de família como união entre homem e mulher é um valor cultural e religioso profundamente arraigado. O Estado deve respeitar essa visão.',
+    positions:[2,-2,0,-1,2,-1] },
+  { topic:'direitos', title:'O aborto deve ser descriminalizado até certo prazo de gestação',
+    context:'O Brasil criminaliza o aborto exceto em casos de estupro, risco de vida da mãe e anencefalia. Um PL aprovado na Câmara em 2024 equiparou aborto tardio a homicídio qualificado.',
+    argFor:'A criminalização não elimina o aborto, apenas o torna inseguro para mulheres pobres. Países que descriminalizaram têm menos mortes maternas. É questão de saúde pública.',
+    argAgainst:'O aborto tira uma vida humana em formação. O Estado deve proteger o nascituro e ampliar apoio às mães em situação de vulnerabilidade.',
+    positions:[1,-2,-1,-2,1,-2] },
+
+  // POLÍTICA EXTERNA
+  { topic:'politica', title:'O Brasil deve priorizar o BRICS e o Sul Global sobre alianças com EUA e Europa',
+    context:'O governo Lula reforçou laços com China e países africanos no contexto do BRICS expandido. Críticos alertam para o risco de se afastar de parceiros democráticos.',
+    argFor:'O Sul Global representa o futuro do crescimento econômico mundial. O Brasil deve diversificar parceiros e não depender de uma ordem global definida pelos países ricos.',
+    argAgainst:'Aproximar-se de regimes autoritários compromete os valores democráticos do Brasil e afasta parceiros comerciais essenciais.',
+    positions:[2,-1,0,-1,1,0] },
+  { topic:'politica', title:'O Brasil deve assumir papel ativo na mediação de conflitos internacionais',
+    context:'O Brasil se posicionou como mediador na guerra da Ucrânia e no conflito em Gaza. A diplomacia ativa é tradição da política externa brasileira.',
+    argFor:'O Brasil tem tradição pacifista e credibilidade para mediar conflitos. Um país do nosso porte tem responsabilidade de contribuir para a paz global.',
+    argAgainst:'Mediar conflitos sem poder de barganha real é ineficaz e cria atritos com aliados estratégicos. O Brasil deve focar em seus interesses econômicos diretos.',
+    positions:[2,0,1,-1,1,0] },
+  { topic:'politica', title:'O Brasil deve fortalecer o Mercosul e a integração sul-americana',
+    context:'O Mercosul negocia há décadas um acordo com a UE. A integração enfrenta obstáculos políticos. O debate é se o bloco tem futuro ou deve ser reformulado.',
+    argFor:'A integração regional é essencial para que os países sul-americanos tenham peso nas negociações globais e possam criar um mercado de 300 milhões de pessoas.',
+    argAgainst:'O Mercosul engessa o Brasil em acordos com países menores e atrasa negociações bilaterais vantajosas com grandes economias.',
+    positions:[2,0,1,0,1,1] },
+
+  // DEMOCRACIA
+  { topic:'democracia', title:'As decisões do STF devem poder ser anuladas por maioria qualificada no Congresso',
+    context:'A proposta de "contrapeso" ao STF ganhou força após decisões polêmicas. O debate é entre controle democrático do Judiciário e independência judicial.',
+    argFor:'O STF acumulou poder excessivo e seus ministros, não eleitos, tomam decisões políticas que deveriam ser do Congresso. Um mecanismo de revisão é necessário.',
+    argAgainst:'Permitir que o Congresso anule decisões do STF enfraquece o estado de direito e a proteção de minorias. A independência judicial é pilar da democracia.',
+    positions:[-2,2,-1,0,-2,-1] },
+  { topic:'democracia', title:'Os envolvidos nos atos golpistas de 8 de janeiro devem ser anistiados',
+    context:'O STF condenou centenas de participantes dos ataques de 8 de janeiro de 2023. O PL da Anistia, defendido pelo bolsonarismo, anularia essas condenações.',
+    argFor:'Muitos participantes foram pessoas comuns enganadas por líderes políticos. A anistia promoveria a reconciliação nacional e evitaria a judicialização excessiva da política.',
+    argAgainst:'Anistiar quem atacou o Congresso, o STF e o Palácio do Planalto seria um sinal perigoso de que tentativas de golpe não têm consequências no Brasil.',
+    positions:[-2,2,-1,-1,-2,-1] },
+  { topic:'democracia', title:'As redes sociais devem ser reguladas pelo Estado para combater desinformação',
+    context:'O PL 2630 (Lei das Fake News) foi aprovado no Senado mas travou na Câmara. O debate é entre combate à desinformação e liberdade de expressão.',
+    argFor:'Redes sociais amplificam desinformação e discurso de ódio com consequências reais para a democracia. Regulação é necessária para responsabilizar plataformas.',
+    argAgainst:'Regulação estatal de conteúdo digital é censura disfarçada. O Estado não deve ter poder para decidir o que é ou não desinformação em plataformas privadas.',
+    positions:[2,-2,1,-2,2,-1] },
+  { topic:'democracia', title:'O voto obrigatório deve ser mantido no Brasil',
+    context:'O Brasil tem voto obrigatório para maiores de 18 e menores de 70 anos. Propostas de torná-lo facultativo são debatidas há décadas.',
+    argFor:'O voto obrigatório garante alta participação eleitoral e impede governos eleitos apenas pela minoria mais mobilizada. Pobres votam menos em países com voto facultativo.',
+    argAgainst:'Votar é um direito, não uma obrigação. O Estado não deve obrigar cidadãos a participar de processos políticos; melhor educar para a cidadania.',
+    positions:[2,-1,1,-1,2,0] },
+];
+
+let selectedTopics = new Set();
+let activeQuestions = [];
+let answers = {};
+let current = 0;
+let selectedVal = null;
+let cachedAnalysis = null;
+
+function buildTopicGrid() {
+  const grid = document.getElementById('topics-grid');
+  TOPICS.forEach(t => {
+    const el = document.createElement('div');
+    el.className = 'topic-chip';
+    el.dataset.id = t.id;
+    el.innerHTML = `<span class="icon">${t.icon}</span>${t.label}<span class="check">✓</span>`;
+    el.onclick = () => toggleTopic(t.id, el);
+    grid.appendChild(el);
+  });
+}
+
+function toggleTopic(id, el) {
+  if (selectedTopics.has(id)) { selectedTopics.delete(id); el.classList.remove('selected'); }
+  else { selectedTopics.add(id); el.classList.add('selected'); }
+  document.getElementById('start-btn').disabled = selectedTopics.size < 3;
+}
+
+function startQuiz() {
+  activeQuestions = QUESTIONS.filter(q => selectedTopics.has(q.topic));
+  answers = {}; current = 0; selectedVal = null; cachedAnalysis = null;
+  show('screen-quiz'); renderQ();
+}
+
+function renderQ() {
+  const q = activeQuestions[current];
+  const total = activeQuestions.length;
+  document.getElementById('q-count').textContent = `${current + 1} / ${total}`;
+  const topicObj = TOPICS.find(t => t.id === q.topic);
+  document.getElementById('q-topic').textContent = topicObj ? topicObj.label : q.topic;
+  document.getElementById('q-number').textContent = `Pergunta ${current + 1} de ${total}`;
+  document.getElementById('q-text').textContent = q.title;
+  document.getElementById('q-context').textContent = q.context;
+  document.getElementById('arg-for').textContent = q.argFor;
+  document.getElementById('arg-against').textContent = q.argAgainst;
+  document.getElementById('progress').style.width = ((current / total) * 100) + '%';
+  const toggle = document.getElementById('args-toggle');
+  const box = document.getElementById('args-box');
+  toggle.classList.remove('open'); box.classList.remove('open');
+  selectedVal = answers[current] !== undefined ? answers[current] : null;
+  document.getElementById('btn-next').disabled = selectedVal === null;
+  const labels = ['Concordo totalmente','Concordo parcialmente','Neutro','Discordo parcialmente','Discordo totalmente'];
+  const scores = [2,1,0,-1,-2];
+  const optDiv = document.getElementById('options');
+  optDiv.innerHTML = '';
+  labels.forEach((label, i) => {
+    const score = scores[i];
+    const btn = document.createElement('button');
+    btn.className = 'opt' + (selectedVal === score ? ' selected' : '');
+    btn.innerHTML = `<span class="opt-dot"></span>${label}`;
+    btn.onclick = () => selectOpt(score);
+    optDiv.appendChild(btn);
+  });
+}
+
+function toggleArgs() {
+  document.getElementById('args-toggle').classList.toggle('open');
+  document.getElementById('args-box').classList.toggle('open');
+}
+
+function selectOpt(score) {
+  selectedVal = score;
+  document.getElementById('btn-next').disabled = false;
+  const scores = [2,1,0,-1,-2];
+  document.querySelectorAll('.opt').forEach((b, i) => b.classList.toggle('selected', scores[i] === score));
+}
+
+function nextQ() {
+  if (selectedVal !== null) answers[current] = selectedVal;
+  current++;
+  if (current >= activeQuestions.length) { showResults(); return; }
+  renderQ();
+}
+
+function skipQ() {
+  current++;
+  if (current >= activeQuestions.length) { showResults(); return; }
+  selectedVal = null; renderQ();
+}
+
+function calcScores() {
+  return PARTIES.map((p, pi) => {
+    let total = 0, max = 0;
+    const topicTotals = {};
+    activeQuestions.forEach((q, qi) => {
+      const ans = answers[qi];
+      if (ans === undefined) return;
+      const pos = q.positions[pi];
+      if (pos === null) return;
+      const agree = 4 - Math.abs(ans - pos);
+      total += agree; max += 4;
+      if (!topicTotals[q.topic]) topicTotals[q.topic] = { sum:0, max:0 };
+      topicTotals[q.topic].sum += agree; topicTotals[q.topic].max += 4;
+    });
+    const pct = max > 0 ? Math.round((total / max) * 100) : 50;
+    const byTopic = {};
+    Object.keys(topicTotals).forEach(t => {
+      const d = topicTotals[t];
+      byTopic[t] = d.max > 0 ? Math.round((d.sum / d.max) * 100) : 50;
+    });
+    return { ...p, pct, byTopic };
+  }).sort((a, b) => b.pct - a.pct);
+}
+
+function makeWhyText(p) {
+  const strong = [], weak = [];
+  Object.entries(p.byTopic).forEach(([tid, pct]) => {
+    const t = TOPICS.find(t => t.id === tid);
+    const label = t ? t.label : tid;
+    if (pct >= 65) strong.push(label);
+    else if (pct <= 40) weak.push(label);
+  });
+  let why = '';
+  if (strong.length) why += `Muito alinhados em: ${strong.join(', ')}. `;
+  if (weak.length) why += `Divergência em: ${weak.join(', ')}. `;
+  if (!why) why = `Alinhamento moderado nos temas escolhidos. `;
+  return why.trim();
+}
+
+function showResults() {
+  const scored = calcScores();
+  const top3 = scored.slice(0, 3);
+  const top3Div = document.getElementById('top3-grid');
+  top3Div.innerHTML = '';
+  top3.forEach((p, i) => {
+    top3Div.innerHTML += `
+      <div class="top3-card${i===0?' rank1':''}">
+        <div class="top3-rank">${['🥇 1º lugar','🥈 2º lugar','🥉 3º lugar'][i]}</div>
+        <div class="top3-name">${p.name}</div>
+        <div class="top3-full">${p.full}</div>
+        <div class="top3-pct">${p.pct}% de alinhamento</div>
+        <div class="top3-why">${makeWhyText(p)}</div>
+        <a class="top3-link" href="${p.url}" target="_blank" rel="noopener">Site do partido ↗</a>
+      </div>`;
+  });
+  const barsDiv = document.getElementById('all-bars');
+  barsDiv.innerHTML = '';
+  scored.forEach(p => {
+    barsDiv.innerHTML += `
+      <div class="party-row">
+        <div class="party-label">
+          <span><span class="pname">${p.name}</span><span class="pfull">${p.full}</span></span>
+          <span class="ppct">${p.pct}%</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="width:0%;background:${p.color}" data-pct="${p.pct}"></div></div>
+      </div>`;
+  });
+  setTimeout(() => document.querySelectorAll('.bar-fill').forEach(b => b.style.width = b.dataset.pct + '%'), 80);
+  const tabs = document.getElementById('party-tabs');
+  const panels = document.getElementById('topic-panels');
+  tabs.innerHTML = ''; panels.innerHTML = '';
+  const selTopics = [...selectedTopics];
+  scored.forEach((p, pi) => {
+    const tab = document.createElement('button');
+    tab.className = 'ptab' + (pi===0?' active':'');
+    tab.textContent = p.name;
+    tab.onclick = () => {
+      document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      document.querySelectorAll('.topic-panel').forEach(t => t.classList.remove('active'));
+      document.getElementById('panel-'+p.name).classList.add('active');
+    };
+    tabs.appendChild(tab);
+    const panel = document.createElement('div');
+    panel.className = 'topic-panel' + (pi===0?' active':'');
+    panel.id = 'panel-'+p.name;
+    let html = '';
+    selTopics.forEach(tid => {
+      const pct = p.byTopic[tid]; if (pct===undefined) return;
+      const t = TOPICS.find(t => t.id===tid);
+      const label = t ? t.icon+' '+t.label : tid;
+      const cls = pct>=60?'agree':pct<=40?'disagree':'mid';
+      html += `<div class="topic-row"><span class="topic-name">${label}</span><span class="topic-pct ${cls}">${pct}%</span></div>`;
+    });
+    panel.innerHTML = html || '<p style="color:var(--muted);font-size:.85rem;padding:1rem 0;">Sem dados suficientes.</p>';
+    panels.appendChild(panel);
+  });
+  show('screen-results');
+}
+
+function restart() {
+  answers={}; current=0; selectedVal=null; cachedAnalysis=null;
+  selectedTopics=new Set();
+  document.querySelectorAll('.topic-chip').forEach(el => el.classList.remove('selected'));
+  document.getElementById('start-btn').disabled=true;
+  show('screen-intro');
+}
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ── DEEP ANALYSIS ─────────────────────────────────────────────────────────────
+
+function buildPrompt(scored) {
+  const optLabels = ['Concordo totalmente','Concordo parcialmente','Neutro','Discordo parcialmente','Discordo totalmente'];
+  const optScores = [2,1,0,-1,-2];
+  const top3 = scored.slice(0,3);
+
+  const answerLines = activeQuestions.map((q, qi) => {
+    const ans = answers[qi];
+    if (ans === undefined) return null;
+    const userLabel = optLabels[optScores.indexOf(ans)] || '?';
+    const partyPos = PARTIES.map((p, pi) => {
+      const pos = q.positions[pi];
+      if (pos === null) return `${p.name}: s/posição`;
+      const lbl = optLabels[optScores.indexOf(pos)] || pos;
+      return `${p.name}: ${lbl}`;
+    }).join(' | ');
+    const topicLabel = (TOPICS.find(t => t.id===q.topic)||{}).label || q.topic;
+    return `[${topicLabel}] "${q.title}"\n  → Usuário: ${userLabel}\n  → ${partyPos}`;
+  }).filter(Boolean).join('\n\n');
+
+  const ranking = scored.map((p,i) => `${i+1}. ${p.name} — ${p.pct}%`).join('\n');
+
+  const topicBreak = top3.map(p => {
+    const lines = Object.entries(p.byTopic).map(([tid, pct]) => {
+      const t = TOPICS.find(t => t.id===tid);
+      return `  ${t?t.label:tid}: ${pct}%`;
+    }).join('\n');
+    return `${p.name}:\n${lines}`;
+  }).join('\n\n');
+
+  return `Você é um analista político brasileiro especializado em partidos e eleições de 2026. Um usuário completou a Bússola Eleitoral e você deve fornecer uma análise aprofundada, personalizada e inteligente dos resultados.
+
+RESPOSTAS DO USUÁRIO (por pergunta, com posições comparativas dos partidos):
+${answerLines}
+
+RANKING FINAL:
+${ranking}
+
+ALINHAMENTO POR TEMA — TOP 3:
+${topicBreak}
+
+Escreva uma análise em português brasileiro com estas seções, usando ### para os títulos:
+
+### Seu perfil político
+Onde o usuário se situa no espectro, com nuances reais. Não diga apenas "esquerda/direita" — descreva em quais áreas é mais progressista, em quais é mais conservador, onde há contradições internas interessantes. Seja específico sobre as respostas dadas.
+
+### Por que o ${top3[0].name} ficou em primeiro
+Explique com precisão quais respostas concretas mais contribuíram para o alinhamento. Cite perguntas específicas onde houve forte concordância. Mencione também onde há divergências que reduziram o alinhamento. Seja analítico.
+
+### O que separa o ${top3[1]?top3[1].name:'2º'} do ${top3[2]?top3[2].name:'3º'}
+Compare os dois do ponto de vista do usuário: em quais temas o usuário está mais próximo de um do que do outro? O que os diferencia concretamente?
+
+### Onde você diverge do seu partido mais próximo
+Identifique 2-3 perguntas específicas onde o usuário discordou do ${top3[0].name}. O que isso revela?
+
+### Uma reflexão final
+Parágrafo sintético sobre o que o perfil revela sobre o debate político brasileiro de 2026 — sem recomendar partido. Tom inteligente e direto.
+
+Use os nomes reais das perguntas. Seja específico, não genérico. Máximo 650 palavras.`;
+}
+
+async function openDeepAnalysis() {
+  const btn = document.getElementById('deep-btn');
+  const overlay = document.getElementById('modal-overlay');
+  const body = document.getElementById('analysis-body');
+  const subtitle = document.getElementById('modal-subtitle');
+
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  if (cachedAnalysis) {
+    subtitle.textContent = 'Gerada com base nas suas respostas';
+    body.innerHTML = `<div class="analysis-content">${cachedAnalysis}</div>`;
+    return;
+  }
+
+  btn.classList.add('loading'); btn.disabled = true;
+  subtitle.textContent = 'Analisando suas respostas com IA…';
+  body.innerHTML = `<div class="analysis-loading"><div class="big-spinner"></div><p>Preparando sua análise política personalizada…</p></div>`;
+
+  const scored = calcScores();
+  const prompt = buildPrompt(scored);
+
+  try {
+    const response = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1100,
+        stream: true,
+        messages: [{ role:'user', content: prompt }]
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`HTTP ${response.status}: ${err}`);
+    }
+
+    subtitle.textContent = 'Gerada com base nas suas respostas';
+    body.innerHTML = '<div class="analysis-content cursor-blink" id="stream-out"></div>';
+    const target = document.getElementById('stream-out');
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let raw = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value, { stream: true });
+      for (const line of chunk.split('\n')) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6).trim();
+        if (data === '[DONE]') break;
+        try {
+          const parsed = JSON.parse(data);
+          if (parsed.type === 'content_block_delta' && parsed.delta?.type === 'text_delta') {
+            raw += parsed.delta.text;
+            target.innerHTML = md2html(raw);
+            // scroll modal body to bottom as text streams in
+            body.scrollTop = body.scrollHeight;
+          }
+        } catch {}
+      }
+    }
+
+    target.classList.remove('cursor-blink');
+    cachedAnalysis = target.innerHTML;
+    btn.classList.remove('loading'); btn.disabled = false;
+
+  } catch (err) {
+    body.innerHTML = `<div class="analysis-error">
+      <strong>Não foi possível gerar a análise.</strong><br>
+      Verifique sua conexão com a internet e tente novamente.<br>
+      <small style="opacity:0.7">${err.message}</small>
+    </div>`;
+    btn.classList.remove('loading'); btn.disabled = false;
+    subtitle.textContent = 'Erro ao gerar análise';
+  }
+}
+
+function md2html(md) {
+  // escape HTML first
+  let s = md.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // inline formatting
+  s = s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  s = s.replace(/\*(.+?)\*/g,'<em>$1</em>');
+  // headings
+  s = s.replace(/^### (.+)$/gm,'<h3>$1</h3>');
+  // split double-newlines into blocks
+  const blocks = s.split(/\n{2,}/);
+  return blocks.map(block => {
+    const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+    if (!lines.length) return '';
+    if (lines[0].startsWith('<h3>')) return lines.join(' ');
+    if (lines.every(l => l.startsWith('- '))) {
+      return '<ul>' + lines.map(l => `<li>${l.slice(2)}</li>`).join('') + '</ul>';
+    }
+    return '<p>' + lines.join(' ') + '</p>';
+  }).join('');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+buildTopicGrid();
+</script>
+</body>
+</html>
