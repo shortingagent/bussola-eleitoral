@@ -299,7 +299,7 @@ footer{text-align:center;padding:2rem;font-size:.73rem;color:var(--muted);border
   <div class="radar-wrap">
     <h3>Seu perfil por tema</h3>
     <p>Cada eixo representa um dos temas que você escolheu. Quanto mais próximo da borda, mais consistente sua posição naquele tema.</p>
-    <svg id="radar-svg" viewBox="0 0 400 400"></svg>
+    <svg id="radar-svg" viewBox="-40 -20 480 480"></svg>
     <div class="radar-legend" id="radar-legend"></div>
   </div>
 
@@ -879,7 +879,7 @@ function drawCompass(userPos, scored) {
   const ox = pad, oy = pad;
 
   function toX(v) { return ox + ((v+100)/200)*cw; }
-  function toY(v) { return oy + ((100-v)/200)*ch; }
+  function toY(v) { return oy + ((v+100)/200)*ch; }  // +100=conservative=bottom, -100=progressive=top
 
   // Background quadrants
   const quads = [
@@ -930,17 +930,22 @@ function drawCompass(userPos, scored) {
     svg.appendChild(t);
   });
 
-  // Party spectrum dots (small, muted)
-  PARTY_SPECTRUM.forEach(p => {
+  // Party reference dots — only key anchors to avoid clutter
+  [{name:'PT',economic:-60,social:-40,color:'#C0392B'},
+   {name:'PL',economic:+55,social:+80,color:'#002776'},
+   {name:'MDB',economic:-10,social:-15,color:'#E67E22'},
+   {name:'NOVO',economic:+90,social:+50,color:'#E74C3C'},
+   {name:'PSOL',economic:-90,social:-85,color:'#9B59B6'},
+  ].forEach(p => {
     const x = toX(p.economic), y = toY(p.social);
     const c = document.createElementNS(ns,'circle');
-    c.setAttribute('cx',x); c.setAttribute('cy',y); c.setAttribute('r','4');
-    c.setAttribute('fill',p.color); c.setAttribute('opacity','.35');
+    c.setAttribute('cx',x); c.setAttribute('cy',y); c.setAttribute('r','3');
+    c.setAttribute('fill',p.color); c.setAttribute('opacity','.25');
     svg.appendChild(c);
     const t = document.createElementNS(ns,'text');
-    t.setAttribute('x',x); t.setAttribute('y',y-7);
-    t.setAttribute('text-anchor','middle'); t.setAttribute('font-size','8');
-    t.setAttribute('fill',p.color); t.setAttribute('opacity','.6');
+    t.setAttribute('x',x); t.setAttribute('y',y-6);
+    t.setAttribute('text-anchor','middle'); t.setAttribute('font-size','7.5');
+    t.setAttribute('fill',p.color); t.setAttribute('opacity','.45');
     t.setAttribute('font-family','DM Sans, sans-serif');
     t.textContent = p.name;
     svg.appendChild(t);
@@ -988,11 +993,84 @@ function drawCompass(userPos, scored) {
   svg.appendChild(label);
 }
 
+// MINI COMPASS for rank-1 card
+function drawMiniCompass(svgId, userPos, candidate) {
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  svg.innerHTML = '';
+  const ns = 'http://www.w3.org/2000/svg';
+  const W=200, H=200, pad=20;
+  const cw=W-pad*2, ch=H-pad*2;
+  const ox=pad, oy=pad;
+  function toX(v){ return ox+((v+100)/200)*cw; }
+  function toY(v){ return oy+((v+100)/200)*ch; }
+
+  // Quadrant backgrounds
+  [{x:ox,y:oy,w:cw/2,h:ch/2,fill:'#fef9e7'},{x:ox+cw/2,y:oy,w:cw/2,h:ch/2,fill:'#fdf2f8'},
+   {x:ox,y:oy+ch/2,w:cw/2,h:ch/2,fill:'#eaf4fb'},{x:ox+cw/2,y:oy+ch/2,w:cw/2,h:ch/2,fill:'#fef5ee'}
+  ].forEach(q=>{
+    const r=document.createElementNS(ns,'rect');
+    r.setAttribute('x',q.x);r.setAttribute('y',q.y);r.setAttribute('width',q.w);r.setAttribute('height',q.h);r.setAttribute('fill',q.fill);
+    svg.appendChild(r);
+  });
+
+  // Axes
+  ['h','v'].forEach(dir=>{
+    const l=document.createElementNS(ns,'line');
+    if(dir==='h'){l.setAttribute('x1',ox);l.setAttribute('y1',oy+ch/2);l.setAttribute('x2',ox+cw);l.setAttribute('y2',oy+ch/2);}
+    else{l.setAttribute('x1',ox+cw/2);l.setAttribute('y1',oy);l.setAttribute('x2',ox+cw/2);l.setAttribute('y2',oy+ch);}
+    l.setAttribute('stroke','#ddd');l.setAttribute('stroke-width','1');svg.appendChild(l);
+  });
+
+  // Axis micro-labels
+  [['←Esq',ox+3,oy+ch/2-5,'start'],['Dir→',ox+cw-3,oy+ch/2-5,'end'],
+   ['↑Prog',ox+cw/2,oy+9,'middle'],['↓Cons',ox+cw/2,oy+ch-3,'middle']
+  ].forEach(([txt,x,y,a])=>{
+    const t=document.createElementNS(ns,'text');
+    t.setAttribute('x',x);t.setAttribute('y',y);t.setAttribute('text-anchor',a);
+    t.setAttribute('font-size','7');t.setAttribute('fill','#bbb');t.setAttribute('font-family','DM Sans, sans-serif');
+    t.textContent=txt;svg.appendChild(t);
+  });
+
+  // Line connecting user to candidate
+  const ux=toX(userPos.economic), uy=toY(userPos.social);
+  const cx2=toX(candidate.economic), cy2=toY(candidate.social);
+  const line=document.createElementNS(ns,'line');
+  line.setAttribute('x1',ux);line.setAttribute('y1',uy);line.setAttribute('x2',cx2);line.setAttribute('y2',cy2);
+  line.setAttribute('stroke','#ccc');line.setAttribute('stroke-width','1');line.setAttribute('stroke-dasharray','3,2');
+  svg.appendChild(line);
+
+  // Candidate dot
+  const cdot=document.createElementNS(ns,'circle');
+  cdot.setAttribute('cx',cx2);cdot.setAttribute('cy',cy2);cdot.setAttribute('r','7');
+  cdot.setAttribute('fill',candidate.partyColor);cdot.setAttribute('stroke','#fff');cdot.setAttribute('stroke-width','1.5');
+  svg.appendChild(cdot);
+  const clabel=document.createElementNS(ns,'text');
+  clabel.setAttribute('x',cx2);clabel.setAttribute('y',cy2-10);
+  clabel.setAttribute('text-anchor','middle');clabel.setAttribute('font-size','8');
+  clabel.setAttribute('fill',candidate.partyColor);clabel.setAttribute('font-weight','500');
+  clabel.setAttribute('font-family','DM Sans, sans-serif');
+  clabel.textContent=candidate.name;svg.appendChild(clabel);
+
+  // User dot
+  const udot=document.createElementNS(ns,'circle');
+  udot.setAttribute('cx',ux);udot.setAttribute('cy',uy);udot.setAttribute('r','7');
+  udot.setAttribute('fill','#009B3A');udot.setAttribute('stroke','#fff');udot.setAttribute('stroke-width','1.5');
+  svg.appendChild(udot);
+  const ulabel=document.createElementNS(ns,'text');
+  ulabel.setAttribute('x',ux);ulabel.setAttribute('y',uy+14);
+  ulabel.setAttribute('text-anchor','middle');ulabel.setAttribute('font-size','8');
+  ulabel.setAttribute('fill','#009B3A');ulabel.setAttribute('font-weight','500');
+  ulabel.setAttribute('font-family','DM Sans, sans-serif');
+  ulabel.textContent='Você';svg.appendChild(ulabel);
+}
+
 // CANDIDATE CARDS
 function buildCandidateCards(scored) {
   const top3 = scored.slice(0,3);
   const grid = document.getElementById('cand-grid');
   grid.innerHTML = '';
+  const userPos = calcUserPosition();
   top3.forEach((c,i) => {
     const strong = [], weak = [];
     Object.entries(c.byTopic).forEach(([tid,pct]) => {
@@ -1004,6 +1082,11 @@ function buildCandidateCards(scored) {
     if (strong.length) why += `Alinhados em: ${strong.slice(0,2).join(', ')}. `;
     if (weak.length) why += `Divergência em: ${weak.slice(0,2).join(', ')}.`;
     if (!why) why = 'Alinhamento moderado nos temas escolhidos.';
+    const miniCompass = i===0 ? `<svg id="mini-compass-0" viewBox="0 0 200 200" style="width:100%;max-width:200px;display:block;margin:.75rem auto 0;border-radius:8px;overflow:hidden;"></svg>
+      <div style="display:flex;justify-content:center;gap:12px;margin-top:.4rem;font-size:.7rem;color:var(--muted);">
+        <span><span style="color:#009B3A">●</span> Você</span>
+        <span><span style="color:${c.partyColor}">●</span> ${c.name}</span>
+      </div>` : '';
     grid.innerHTML += `
       <div class="cand-card${i===0?' rank1':''}">
         <div class="cand-avatar" style="background:${c.partyColor}20">
@@ -1015,8 +1098,11 @@ function buildCandidateCards(scored) {
         <div class="cand-pct">${c.pct}% de alinhamento</div>
         <div class="cand-why">${why}</div>
         <a class="cand-link" href="${c.url}" target="_blank" rel="noopener">Site do partido ↗</a>
+        ${miniCompass}
       </div>`;
   });
+  // Draw mini compass after DOM update
+  setTimeout(() => drawMiniCompass('mini-compass-0', userPos, scored[0]), 50);
 }
 
 // ALL BARS
