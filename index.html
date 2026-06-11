@@ -299,7 +299,7 @@ footer{text-align:center;padding:2rem;font-size:.73rem;color:var(--muted);border
   <div class="radar-wrap">
     <h3>Seu perfil por tema</h3>
     <p>Cada eixo representa um dos temas que você escolheu. Quanto mais próximo da borda, mais consistente sua posição naquele tema.</p>
-    <svg id="radar-svg" viewBox="-40 -20 480 480"></svg>
+    <svg id="radar-svg" viewBox="0 0 500 500"></svg>
     <div class="radar-legend" id="radar-legend"></div>
   </div>
 
@@ -347,7 +347,7 @@ footer{text-align:center;padding:2rem;font-size:.73rem;color:var(--muted);border
 const CANDIDATES = [
   {
     id:'lula', name:'Lula', fullName:'Luiz Inácio Lula da Silva', party:'PT', partyColor:'#C0392B',
-    avatar:'👴🏾', url:'https://pt.org.br',
+    avatar:'👨🏽‍💼', url:'https://pt.org.br',
     desc:'Presidente em exercício buscando reeleição. Fundador do PT, líder histórico da esquerda brasileira.',
     economic:-60, social:-40,
     topics:{ economia:-65, fiscal:-50, ambiente:-75, seguranca:-40, saude:-70, educacao:-55, direitos:-70, politica:-60, democracia:-80 }
@@ -730,50 +730,72 @@ function calcCandidateScores() {
 }
 
 function calcUserPosition() {
-  // Economic axis: aggregate economic + fiscal topics
-  // Social axis: aggregate direitos + educacao + saude topics
-  // Returns {economic: -100..100, social: -100..100}
+  // Place user on a -100..+100 economic and social axis.
+  // Strategy: compare user answers directly to each candidate's positions,
+  // then compute a weighted average of where the user sits between
+  // the leftmost (Lula) and rightmost (Flávio) candidates.
+  // 
+  // Simpler and more robust: directly score the user's answers as
+  // left(-) or right(+) based on the question's left-right loading.
+  // Economic left questions: Bolsa Família, salário mínimo, estatais, etc.
+  // We define left-loading as: Lula agrees (+) AND Flávio disagrees (-)
+  // That gives us the clearest signal.
+
   const economicTopics = ['economia','fiscal','politica'];
-  const socialTopics = ['direitos','educacao','saude','seguranca'];
+  const socialTopics   = ['direitos','educacao','saude','seguranca','ambiente','democracia'];
 
   let eSum = 0, eCount = 0, sSum = 0, sCount = 0;
+
   activeQuestions.forEach((q, qi) => {
     const ans = answers[qi];
     if (ans === undefined) return;
-    // ans: -2 to +2, where +2 = agree with left-leaning question
-    // We need to orient: left questions have negative candidate positions on right
-    // Use Lula's position (index 0) as the "left anchor"
-    const leftAnchor = q.positions[0]; // Lula's position
-    // If Lula agrees (positive), user agreeing = left-leaning
-    const oriented = ans * (leftAnchor >= 0 ? 1 : -1) * (leftAnchor !== 0 ? 1 : 0);
-    const score = (oriented / 2) * 100; // scale to -100..100
+
+    const lulaPos   = q.positions[0]; // PT  — left anchor
+    const flavioPos = q.positions[1]; // PL  — right anchor
+    const spread = lulaPos - flavioPos; // positive = left-leaning question
+
+    // Skip questions where both parties agree (no discriminating power)
+    if (Math.abs(spread) < 2) return;
+
+    // User score on this question relative to the left-right axis:
+    // If user agrees with a left-leaning question → negative (left)
+    // If user agrees with a right-leaning question → positive (right)
+    // ans range: -2..+2, spread: usually ±2..±4
+    // Normalize: positive spread = left question, so agreeing (high ans) = left = negative economic
+    const raw = -(ans / 2) * (spread / Math.abs(spread)); // -1..+1
+    const score = raw * 100; // -100..+100
 
     if (economicTopics.includes(q.topic)) { eSum += score; eCount++; }
-    else if (socialTopics.includes(q.topic)) { sSum += score; sCount++; }
-    else { eSum += score * .5; eCount += .5; sSum += score * .5; sCount += .5; }
+    else { sSum += score; sCount++; }
   });
-  return {
-    economic: eCount > 0 ? Math.round(eSum / eCount) : 0,
-    social: sCount > 0 ? Math.round(sSum / sCount) : 0,
-  };
+
+  const economic = eCount > 0 ? Math.max(-90, Math.min(90, Math.round(eSum / eCount))) : 0;
+  const social   = sCount > 0 ? Math.max(-90, Math.min(90, Math.round(sSum / sCount))) : 0;
+  return { economic, social };
 }
 
 function calcRadarData() {
-  // Returns per-topic user score 0-100 (100 = fully progressive/left, 0 = fully right/conservative)
+  // Per-topic score: 0=fully right/conservative, 100=fully left/progressive
+  // Uses same left-right logic as calcUserPosition but per topic
   const result = {};
   selectedTopics.forEach(tid => {
     const qs = activeQuestions.filter(q => q.topic === tid);
     let sum = 0, count = 0;
-    qs.forEach((q, _) => {
+    qs.forEach(q => {
       const qi = activeQuestions.indexOf(q);
       const ans = answers[qi];
       if (ans === undefined) return;
-      const leftAnchor = q.positions[0];
-      if (leftAnchor === 0) return;
-      const oriented = ans * (leftAnchor > 0 ? 1 : -1);
-      sum += oriented; count++;
+      const lulaPos   = q.positions[0];
+      const flavioPos = q.positions[1];
+      const spread = lulaPos - flavioPos;
+      if (Math.abs(spread) < 1) return;
+      // -1 = fully right, +1 = fully left
+      const raw = -(ans / 2) * (spread / Math.abs(spread));
+      sum += raw; count++;
     });
-    result[tid] = count > 0 ? Math.round(((sum / count) / 2 + .5) * 100) : 50;
+    // Convert -1..+1 to 0..100, clamp strictly
+    const val = count > 0 ? (sum / count + 1) / 2 * 100 : 50;
+    result[tid] = Math.max(5, Math.min(95, Math.round(val)));
   });
   return result;
 }
@@ -794,79 +816,102 @@ function showResults() {
 function drawRadar(data) {
   const svg = document.getElementById('radar-svg');
   svg.innerHTML = '';
-  const cx = 200, cy = 200, r = 150;
+  const ns = 'http://www.w3.org/2000/svg';
+  const SIZE = 500;             // total viewBox size
+  const cx = SIZE/2, cy = SIZE/2;
+  const r = 160;                // radius of the grid
+  const labelPad = 38;          // extra space beyond r for labels
   const topics = selectedTopics;
   const n = topics.length;
   const angleStep = (2 * Math.PI) / n;
   const startAngle = -Math.PI / 2;
 
-  const ns = 'http://www.w3.org/2000/svg';
+  // Update viewBox to the full SIZE
+  svg.setAttribute('viewBox', `0 0 ${SIZE} ${SIZE}`);
+
   function pt(i, radius) {
     const a = startAngle + i * angleStep;
     return [cx + radius * Math.cos(a), cy + radius * Math.sin(a)];
   }
 
-  // Grid rings
-  [.25,.5,.75,1].forEach(f => {
+  // Clamp value strictly to [0, 1] so polygon never exceeds grid
+  function clamp(v) { return Math.max(0, Math.min(1, v)); }
+
+  // Shaded grid rings with alternating fills
+  [1, .75, .5, .25].forEach((f, fi) => {
     const pts = topics.map((_,i) => pt(i, r*f).join(',')).join(' ');
     const poly = document.createElementNS(ns,'polygon');
     poly.setAttribute('points', pts);
-    poly.setAttribute('fill','none');
-    poly.setAttribute('stroke','#e0e0e0');
+    poly.setAttribute('fill', fi % 2 === 0 ? '#f8f8f8' : '#fff');
+    poly.setAttribute('stroke','#d8d8d8');
     poly.setAttribute('stroke-width','1');
     svg.appendChild(poly);
   });
 
-  // Axes
+  // Axes with tick marks
   topics.forEach((_,i) => {
     const [x,y] = pt(i, r);
     const line = document.createElementNS(ns,'line');
     line.setAttribute('x1',cx); line.setAttribute('y1',cy);
     line.setAttribute('x2',x); line.setAttribute('y2',y);
-    line.setAttribute('stroke','#e0e0e0'); line.setAttribute('stroke-width','1');
+    line.setAttribute('stroke','#d0d0d0'); line.setAttribute('stroke-width','1.5');
     svg.appendChild(line);
   });
 
-  // User polygon
+  // User polygon — clamped to never exceed r
   const userPts = topics.map((tid,i) => {
-    const val = (data[tid] || 50) / 100;
+    const val = clamp((data[tid] || 50) / 100);
     return pt(i, r * val).join(',');
   }).join(' ');
   const userPoly = document.createElementNS(ns,'polygon');
   userPoly.setAttribute('points', userPts);
-  userPoly.setAttribute('fill','rgba(0,155,58,.15)');
+  userPoly.setAttribute('fill','rgba(0,155,58,.18)');
   userPoly.setAttribute('stroke','#009B3A');
-  userPoly.setAttribute('stroke-width','2');
+  userPoly.setAttribute('stroke-width','2.5');
+  userPoly.setAttribute('stroke-linejoin','round');
   svg.appendChild(userPoly);
 
-  // User dots
+  // User dots — clamped
   topics.forEach((tid,i) => {
-    const val = (data[tid] || 50) / 100;
+    const val = clamp((data[tid] || 50) / 100);
     const [x,y] = pt(i, r * val);
     const c = document.createElementNS(ns,'circle');
-    c.setAttribute('cx',x); c.setAttribute('cy',y); c.setAttribute('r','4');
-    c.setAttribute('fill','#009B3A'); c.setAttribute('stroke','#fff'); c.setAttribute('stroke-width','1.5');
+    c.setAttribute('cx',x); c.setAttribute('cy',y); c.setAttribute('r','5');
+    c.setAttribute('fill','#009B3A'); c.setAttribute('stroke','#fff'); c.setAttribute('stroke-width','2');
     svg.appendChild(c);
   });
 
-  // Labels
+  // Labels — positioned with dynamic anchor based on angle
   topics.forEach((tid,i) => {
     const t = TOPICS.find(x => x.id === tid);
-    const [x,y] = pt(i, r + 22);
+    const a = startAngle + i * angleStep;
+    const [x,y] = pt(i, r + labelPad);
     const text = document.createElementNS(ns,'text');
     text.setAttribute('x',x); text.setAttribute('y',y);
-    text.setAttribute('text-anchor','middle'); text.setAttribute('dominant-baseline','middle');
-    text.setAttribute('font-size','11'); text.setAttribute('fill','#555');
+    // Smart text-anchor: left side of chart → end, right side → start, top/bottom → middle
+    const anchor = Math.cos(a) < -0.3 ? 'end' : Math.cos(a) > 0.3 ? 'start' : 'middle';
+    text.setAttribute('text-anchor', anchor);
+    text.setAttribute('dominant-baseline','middle');
+    text.setAttribute('font-size','13'); text.setAttribute('fill','#444');
+    text.setAttribute('font-weight','500');
     text.setAttribute('font-family','DM Sans, sans-serif');
-    text.textContent = t ? t.icon + ' ' + t.label : tid;
+    // Emoji on its own line above label
+    const label = t ? t.label : tid;
+    const icon = t ? t.icon : '';
+    text.textContent = icon + ' ' + label;
     svg.appendChild(text);
   });
+
+  // Center dot
+  const cd = document.createElementNS(ns,'circle');
+  cd.setAttribute('cx',cx); cd.setAttribute('cy',cy); cd.setAttribute('r','3');
+  cd.setAttribute('fill','#ccc');
+  svg.appendChild(cd);
 
   // Legend
   const legend = document.getElementById('radar-legend');
   legend.innerHTML = `
-    <div class="radar-leg-item"><div class="radar-leg-dot" style="background:#009B3A;opacity:.5;"></div>Seu perfil</div>
-    <div class="radar-leg-item" style="font-size:.72rem;color:var(--muted);">Perto da borda = posição mais progressista no tema</div>`;
+    <div class="radar-leg-item"><div class="radar-leg-dot" style="background:#009B3A;opacity:.6;"></div><span>Seu perfil — perto da borda = posição mais progressista</span></div>`;
 }
 
 // POLITICAL COMPASS
@@ -968,8 +1013,10 @@ function drawCompass(userPos, scored) {
     svg.appendChild(t);
   });
 
-  // User dot — large, green star
-  const ux = toX(userPos.economic), uy = toY(userPos.social);
+  // User dot — clamped so it never lands on the border
+  const clampedEco = Math.max(-90, Math.min(90, userPos.economic));
+  const clampedSoc = Math.max(-90, Math.min(90, userPos.social));
+  const ux = toX(clampedEco), uy = toY(clampedSoc);
   const userCircle = document.createElementNS(ns,'circle');
   userCircle.setAttribute('cx',ux); userCircle.setAttribute('cy',uy); userCircle.setAttribute('r','10');
   userCircle.setAttribute('fill','#009B3A'); userCircle.setAttribute('opacity','1');
